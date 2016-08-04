@@ -1,0 +1,7 @@
+viewlog %{DATE_LOG:date} *%{LOGLEVEL:loglevel} \[%{NOTSPACE:thread}\] \[%{DATA:view}\] %{GREEDYDATA:message}
+webhcatlog %{LOGLEVEL:loglevel} *\| *%{DATE_LOG:date} *\| %{GREEDYDATA:message}
+ambarilog %{DATE_LOG:date} *%{LOGLEVEL:loglevel} \[%{NOTSPACE:thread}\] %{GREEDYDATA:message}
+ambarialertslog %{TIMESTAMP_ISO8601:date} \[%{LOGLEVEL:loglevel}\] %{GREEDYDATA:message}
+ambariagentlog %{LOGLEVEL:loglevel} %{TIMESTAMP_ISO8601:date} %{GREEDYDATA:message}
+uifrmlog %{TIMESTAMP_ISO8601:date} *%{LOGLEVEL:loglevel} %{GREEDYDATA:message}
+outputlog %{TIMESTAMP_ISO8601:date}[\|].*[\|]%{LOGLEVEL:loglevel}[\|].*[\|].*[\|]%{GREEDYDATA:message}
