@@ -18,3 +18,5 @@ libraryDependencies += "org.reactivemongo" %% "play2-reactivemongo" % "0.11.14"
 libraryDependencies += "io.thekraken" % "grok" % "0.1.4"
 
 libraryDependencies += "joda-time" % "joda-time" % "2.9.4"
+
+libraryDependencies += ws

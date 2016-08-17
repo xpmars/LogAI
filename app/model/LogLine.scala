@@ -1,8 +1,19 @@
 package model
 
-import reactivemongo.bson.BSONObjectID
+import play.api.libs.json.Json
 
 /**
   * Created by gnagar on 03/08/16.
   */
-case class LogLine(_id : Option[BSONObjectID], timestamp : Long, message : String, stackTrace : Option[String], filename : String)
+case class LogLine(timestamp:Long, data:String, filename:String, testDetails: Option[TestDetails] = None)
+
+case class TestDetails(test : String, splitId: String)
+
+object TestDetails {
+  implicit val testDetails = Json.format[TestDetails]
+}
+
+object LogLine {
+  implicit val formatter = Json.format[LogLine]
+}
+
