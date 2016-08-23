@@ -5,6 +5,8 @@ import akka.actor.{Actor, Props}
 import api.QeDashboardApi
 import play.api.Logger
 
+import scala.util.Failure
+
 /**
   * Created by gnagar on 16/08/16.
   */
@@ -20,9 +22,11 @@ class QeDashboardActor(qeDashboardApi:QeDashboardApi) extends Actor {
         case result =>
           Logger.info(result.toString)
           Logger.info(result.body)
+      }.onFailure{
+        case e => Logger.error(e.getMessage)
       }
-    case _ =>
-      Logger.info("Unknown Message")
+    case a@_ =>
+      Logger.info("Unknown Message "+a)
   }
 }
 
