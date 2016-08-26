@@ -19,4 +19,10 @@ libraryDependencies += "io.thekraken" % "grok" % "0.1.4"
 
 libraryDependencies += "joda-time" % "joda-time" % "2.9.4"
 
+libraryDependencies += "org.jsoup" % "jsoup" % "1.9.2"
+
+libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.4"
+
+libraryDependencies += "commons-io" % "commons-io" % "2.5"
+
 libraryDependencies += ws

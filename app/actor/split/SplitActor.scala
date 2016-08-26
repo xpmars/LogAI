@@ -1,6 +1,6 @@
 package actor.split
 
-import akka.actor.Actor
+import akka.actor.{Actor, Props}
 import akka.util.LineNumbers.Result
 import play.api.Logger
 
@@ -8,6 +8,11 @@ import play.api.Logger
   * Created by gnagar on 18/08/16.
   */
 class SplitActor extends Actor {
+
+  override def preStart() = {
+    context.parent ! WorkAvalibale
+  }
+
   override def receive = {
     case split:Split =>
       //saveLogs
@@ -17,5 +22,9 @@ class SplitActor extends Actor {
   }
 }
 
+object SplitActor {
+  def props() = Props(classOf[SplitActor])
+}
 
-case class Split(id:String, cluster :String, resultId:String, )
+
+case class Split(id:String, logUrl :String, resultId:String )
