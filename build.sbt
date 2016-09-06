@@ -26,3 +26,13 @@ libraryDependencies += "org.apache.commons" % "commons-lang3" % "3.4"
 libraryDependencies += "commons-io" % "commons-io" % "2.5"
 
 libraryDependencies += ws
+
+val spark = "2.0.0-preview"
+
+libraryDependencies += "org.apache.spark"  %% "spark-core" % spark
+
+libraryDependencies += "org.apache.spark" %% "spark-sql" % spark
+
+libraryDependencies += "org.apache.spark" %% "spark-mllib" % spark
+
+libraryDependencies += "com.fasterxml.jackson" % "jackson-parent" % "2.8"

@@ -39,7 +39,7 @@ class Application @Inject() (configuration:Configuration,
     val head = request.queryString.get("path").map(_.head)
     head match {
       case Some(value) =>
-        val logs: Seq[Map[String, Any]] = LogDirReader.readDir(value)
+        val logs: Seq[Map[String, Any]] = LogDirReader.readDir(value).toSeq
         val loglines = logs.map(getLogLine(_))
         logsRepo.save(loglines).map(x => Ok(x.toString))
       case _ => Future {
