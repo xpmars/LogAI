@@ -3,17 +3,21 @@ package mongo
 import model.LogLine
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.commands.MultiBulkWriteResult
+import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.collection.JSONCollection
 
 import scala.concurrent.Future
 
-class LogsMongoRepo(reactiveMongoApi: ReactiveMongoApi){
+
+class LogsCategoryMongoRepo(reactiveMongoApi: ReactiveMongoApi) {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val LogsCollection = "logs"
+  val LogsCategoryCollection = "logs_category"
 
-  def collection = reactiveMongoApi.database.map(_.collection[JSONCollection](LogsCollection))
+  import reactivemongo.play.json._
+
+  def collection = reactiveMongoApi.database.map(_.collection[JSONCollection](LogsCategoryCollection))
 
   def save(logs:Seq[LogLine]) : Future[MultiBulkWriteResult] = collection.flatMap{
     logcollection =>
@@ -21,4 +25,9 @@ class LogsMongoRepo(reactiveMongoApi: ReactiveMongoApi){
       logcollection.bulkInsert(ordered = true)(documents: _*)
   }
 
+  def getByOrigin(origin:String)  = {
+    collection.flatMap(_.find(BSONDocument(
+      "origin" -> origin
+    )).cursor[LogLine]().collect[List]())
+  }
 }

@@ -1,13 +1,13 @@
 package logai.split
 
-import actor.split.Split
+import model.SplitJob
 
 /**
   * Created by gnagar on 25/08/16.
   */
 object SplitProcessor {
 
-  def processSplit(split:Split)={
+  def processSplit(split:SplitJob)={
     new SplitLogsAggregator(split,"").processLogs()
   }
 }

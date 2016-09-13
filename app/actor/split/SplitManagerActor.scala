@@ -1,24 +1,23 @@
 package actor.split
 
-import akka.actor.{Actor, ActorRef}
-import akka.actor.Actor.Receive
-import play.api.Logger
+import akka.actor.{Actor, ActorRef, Props}
+import model.SplitJob
+import mongo.MongoRepo
+import play.api.{Configuration, Logger}
 
 import scala.collection.mutable
 
-/**
-  * Created by gnagar on 25/08/16.
-  */
-class SplitManagerActor extends Actor {
+class SplitManagerActor(configuration: Configuration, repo : MongoRepo) extends Actor {
 
   val noOfWorkers = 5
 
   private val availableSplitActors = mutable.Queue[ActorRef]()
-  private val splitsToProcess = mutable.Queue[Split]()
+  private val splitsToProcess = mutable.Queue[SplitJob]()
+
 
   override def preStart(): Unit = {
     for(i <- 1 to noOfWorkers) {
-      context.actorOf(SplitActor.props(),s"split-worker-actor-$i")
+      context.actorOf(SplitActor.props(configuration.underlying.getString("split.logpath"),repo),s"split-worker-actor-$i")
     }
   }
 
@@ -27,7 +26,7 @@ class SplitManagerActor extends Actor {
       Logger.info(s"${sender.path} is free now. Adding to available actors.")
       availableSplitActors.enqueue(sender)
       scheduleSplit
-    case s:Split =>
+    case s:SplitJob =>
       Logger.info(s"Received Split with id: ${s}")
       splitsToProcess.enqueue(s)
       scheduleSplit
@@ -40,4 +39,8 @@ class SplitManagerActor extends Actor {
       availableSplitActors.dequeue() ! splitsToProcess.dequeue()
     }
   }
+}
+
+object SplitManagerActor {
+  def props(configuration: Configuration, repo : MongoRepo) = Props(classOf[SplitManagerActor],configuration, repo)
 }

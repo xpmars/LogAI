@@ -2,10 +2,18 @@ package model
 
 import play.api.libs.json.Json
 
-/**
-  * Created by gnagar on 03/08/16.
-  */
-case class LogLine(timestamp:Long, data:String, filename:String, testDetails: Option[TestDetails] = None)
+import logai.LogKeys._
+
+case class LogLine(timestamp:Long, message:String, filename:String,stacktrace : Option[String],
+                   hash:Int, origin:String,category:String,
+                   testName:Option[String] = None,testStatus:Option[Int] = None) {
+  def getAsMap = {
+    val stMap = if(stacktrace.isEmpty) Map() else Map(Stacktrace -> stacktrace.get)
+
+    Map(Timestamp -> timestamp, Message -> message, Filename -> filename,
+      Hash -> hash, Origin -> origin, Category -> category) ++ stMap
+  }
+}
 
 case class TestDetails(test : String, splitId: String)
 
@@ -15,5 +23,21 @@ object TestDetails {
 
 object LogLine {
   implicit val formatter = Json.format[LogLine]
+
+  def apply(log : Map[String,Any]) : LogLine = {
+    val timestamp = log.get(Timestamp).get.asInstanceOf[Long]
+    val message = log.get(Message).get.asInstanceOf[String]
+    val filename = log.get(Filename).get.asInstanceOf[String]
+    val stacktrace =  if(log.contains(Stacktrace)) Some(log.get(Stacktrace).get.toString) else None
+
+    val hash = log.get(Hash).get.asInstanceOf[Int]
+    val origin = log.get(Origin).get.asInstanceOf[String]
+    val category = log.get(Category).get.asInstanceOf[String]
+
+    val testName =  if(log.contains(TestName)) Some(log.get(TestName).get.toString) else None
+    val testStatus =  if(log.contains(TestStatus)) Some(log.get(TestStatus).get.asInstanceOf[Int]) else None
+
+    LogLine(timestamp,message,filename,stacktrace,hash,origin,category,testName,testStatus  )
+  }
 }
 

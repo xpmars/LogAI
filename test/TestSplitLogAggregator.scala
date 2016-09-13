@@ -1,9 +1,9 @@
 import java.io.File
 
-import actor.split.Split
 import logai.{ErrorCategorization, LevenshteinDistance, LogEnricher}
 import logai.reader.{LogDirIterable, LogDirReader, LogFileIterable, TestCaseMetadataReader}
-import logai.split.SplitLogsAggregator
+import logai.split.{SCPLogCollector, SplitLogsAggregator}
+import model.SplitJob$
 import org.joda.time.DateTime
 
 /**
@@ -23,16 +23,16 @@ object TestSplitLogAggregator extends App {
 //  println(seq.size)
 //  println(DateTime.now())
 
-  val t = seq.filter(_.getOrElse("loglevel","").equals("ERROR"))
-
-  val x = t.map(new LogEnricher().process(_)).toSeq
-
-  val errors = new ErrorCategorization(x).categorize()
-
-  errors.groupBy(_.getOrElse("cat","")).foreach{
-    g =>
-      println(g._1 + "," + g._2.head)
-  }
+//  val t = seq.filter(_.getOrElse("loglevel","").equals("ERROR"))
+//
+//  val x = t.map(new LogEnricher().process(_)).toSeq
+//
+//  val errors = new ErrorCategorization(x).categorize()
+//
+//  errors.groupBy(_.getOrElse("cat","")).foreach{
+//    g =>
+//      println(g._1 + "," + g._2.head)
+//  }
 
 //  grouped.foreach{
 //    e => println(e._1 + "," + e._2)
@@ -42,8 +42,10 @@ object TestSplitLogAggregator extends App {
 
 //  t.foreach(println)
 //  println(t.size)
-  println(DateTime.now())
+//  println(DateTime.now())
 
 //  val d = LevenshteinDistance.distance(Seq("abcd", "def" ),Seq("dsad","abcd", "asdsa"))
 //  print(d)
+
+  new SCPLogCollector(SplitJob("1234","hdfs-hadl24m-1473097419",None),"/Users/gnagar/work/collect/").collect()
 }

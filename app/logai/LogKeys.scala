@@ -8,4 +8,9 @@ object LogKeys {
   val Timestamp = "ts"
   val Message = "message"
   val Stacktrace = "stacktrace"
+  val Hash = "hash"
+  val Category = "cat"
+  val Origin = "origin"
+  val TestName = "test"
+  val TestStatus = "teststatus"
 }

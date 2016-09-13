@@ -9,24 +9,30 @@ class LogEnricher {
 
   val components = Set("accumulo","hive","hbase","sql","hiveserve2","hdfs","oozie","webhcat","yarn","ambari")
 
+  import LogKeys._
+
   def process(log : Map[String,Any]) = {
     val filepath = log.getOrElse("path","").toString
 
-    //Get origin component from file path */service-logs/{origin-component}/*
-    val originComponent = if(filepath.contains("service-logs")){
-      filepath.substring(filepath.indexOf("service-logs")).split("/")(1)
-    } else {
-      log.getOrElse("fn","").toString.split("\\.").head
-    }
+    val originComponent = getOriginComponent(log, filepath)
 
     // Get related components from the stracktrace
-    val message = log.getOrElse("message","").toString.toLowerCase
-    val stacktrace = log.getOrElse("stacktrace","").toString.toLowerCase
+    val message = log.getOrElse(Message,"").toString.toLowerCase
+    val stacktrace = log.getOrElse(Stacktrace,"").toString.toLowerCase
     val relatedComponents = components.filter{
       c =>
         stacktrace.contains(c)
     }.toSeq
 
-    log ++ Map("origin" -> originComponent,"rc" -> relatedComponents)
+    log ++ Map(Origin -> originComponent,"rc" -> relatedComponents)
+  }
+
+  //Get origin component from file path */service-logs/{origin-component}/*
+  private def getOriginComponent(log: Map[String, Any], filepath: String): String = {
+    if (filepath.contains("service-logs")) {
+      filepath.substring(filepath.indexOf("service-logs")).split("/")(1)
+    } else {
+      log.getOrElse("fn", "").toString.split("\\.").head
+    }
   }
 }

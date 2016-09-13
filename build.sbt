@@ -13,7 +13,7 @@ unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/
 resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
 
 
-libraryDependencies += "org.reactivemongo" %% "play2-reactivemongo" % "0.11.14"
+libraryDependencies += "org.reactivemongo" % "play2-reactivemongo_2.11" % "0.12-RC3"
 
 libraryDependencies += "io.thekraken" % "grok" % "0.1.4"
 
@@ -35,4 +35,8 @@ libraryDependencies += "org.apache.spark" %% "spark-sql" % spark
 
 libraryDependencies += "org.apache.spark" %% "spark-mllib" % spark
 
-libraryDependencies += "com.fasterxml.jackson" % "jackson-parent" % "2.8"
+libraryDependencies += "com.veact" %% "scala-ssh" % "0.8.0"
+
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7"
+
+

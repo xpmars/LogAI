@@ -14,7 +14,7 @@ class QeDashboardActor(qeDashboardApi:QeDashboardApi) extends Actor {
 
   import scala.concurrent.ExecutionContext.Implicits.global
   import scala.concurrent.duration._
-  context.system.scheduler.schedule(50 milliseconds, 1 minute, self, GetCompletedSplit)
+  //context.system.scheduler.schedule(50 milliseconds, 1 minute, self, GetCompletedSplit)
 
   override def receive = {
     case GetCompletedSplit =>
