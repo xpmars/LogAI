@@ -5,18 +5,21 @@ import org.joda.time.DateTime
 import play.api.libs.json.{Json, Reads}
 
 
-case class SplitJob(_id:String, dir :String, status:Option[SplitJobStatus],lastStatusUpdated:Option[Long] ,history: Option[Seq[SplitJobHistory]]){
-  def withStatus(status:SplitJobStatus) = {
-    if(this.status.isEmpty) {
-      SplitJob(_id,dir,Some(status), Some(DateTime.now().getMillis),Some(Nil))
-    } else {
-      val updatedHistory =  Seq(SplitJobHistory(this.status.get,this.lastStatusUpdated.get,DateTime.now().getMillis)) ++  history.get
-      SplitJob(_id,dir,Some(status),Some(DateTime.now().getMillis),Some(updatedHistory))
-    }
+case class SplitJob(_id: String, dir: String, status: Option[SplitJobStatus], lastStatusUpdated: Option[Long], history: Option[Seq[SplitJobHistory]]) {
+  def withStatus(newStatus: SplitJobStatus) = {
+
+    val updatedHistory =
+      for {
+        _status <- status
+        _lastUpdated <- lastStatusUpdated
+        _history <- history
+      } yield Seq(SplitJobHistory(_status, _lastUpdated, DateTime.now().getMillis)) ++ _history
+
+    SplitJob(_id, dir, Some(newStatus), Some(DateTime.now().getMillis), Some(updatedHistory.getOrElse(Nil)))
   }
 }
 
-case class SplitJobHistory(status: SplitJobStatus, start:Long, end: Long)
+case class SplitJobHistory(status: SplitJobStatus, start: Long, end: Long)
 
 object SplitJob {
   implicit val splitReads = Reads.enumNameReads(SplitJobStatus)
@@ -27,5 +30,5 @@ object SplitJob {
 
 object SplitJobStatus extends Enumeration {
   type SplitJobStatus = Value
-  val QUEUED,LOGS_COLLECTION,LOGS_ANALYZING,TETS_CASE_MAPPING,FINISHED,FAILED = Value
+  val QUEUED, LOGS_COLLECTION, LOGS_ANALYZING, TEST_CASE_MAPPING, TEST_CASE_ANALYZING, FINISHED, FAILED = Value
 }

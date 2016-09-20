@@ -4,20 +4,18 @@ import java.io.File
 
 import logai.LogAIUtils
 import logai.parser.grok.GrokParser
+import model.TestCaseStatus
 import org.joda.time.format.DateTimeFormat
 
 import scala.collection.mutable
 import scala.io.Source
 
-/**
-  * Created by gnagar on 25/08/16.
-  */
-class TestCaseMetadataReader(path:String) {
+class TestCaseMetadataReader(path: String) {
 
   private val TestCaseStatusFile =
-    if(new File("testcaselogs/test_case_status.log").exists())
+    if (new File(LogAIUtils.sanitizePath(path) +"testcaselogs/test_case_status.log").exists())
       "testcaselogs/test_case_status.log"
-  else
+    else
       "artifacts/test_case_status.log"
 
 
@@ -34,10 +32,6 @@ class TestCaseMetadataReader(path:String) {
 
   private val dateTime = DateTimeFormat.forPattern("YYYY-MM-dd HH:mm:ss,SSS")
 
-  private val TestStarted =0
-  private val TestSuccessful = 1
-  private val TestFailed = 2
-
   def parseMetaData() = {
     val tests = mutable.Map[String, TestCaseMetaData]()
 
@@ -45,7 +39,7 @@ class TestCaseMetadataReader(path:String) {
 
     Source.fromFile(filepath).getLines().foreach {
       line =>
-        val map: Map[String, AnyRef]= parser.parse(line)
+        val map: Map[String, AnyRef] = parser.parse(line)
         val map2: Map[String, AnyRef] = failedTestParser.parse(line)
         val map3: Map[String, AnyRef] = passedTestParser.parse(line)
 
@@ -56,11 +50,11 @@ class TestCaseMetadataReader(path:String) {
         } else if (!map2.isEmpty) {
           val et = dateTime.parseDateTime(map2.get(DateKey).get.toString).getMillis
           val name = map2.get(TestKey).get.toString
-          tests += ((name, tests.get(name).get.setEndTime(et, TestFailed)))
-        } else if(!map3.isEmpty){
+          tests += ((name, tests.get(name).get.setEndTime(et, TestCaseStatus.TestFailed)))
+        } else if (!map3.isEmpty) {
           val et = dateTime.parseDateTime(map3.get(DateKey).get.toString).getMillis
           val name = map3.get(TestKey).get.toString
-          tests += ((name, tests.get(name).get.setEndTime(et, TestSuccessful)))
+          tests += ((name, tests.get(name).get.setEndTime(et, TestCaseStatus.TestSuccessful)))
         }
     }
     tests.values.filter(t => t.endTime != 0 && t.startTime != 0 && t.status != 0).toSeq
@@ -68,8 +62,8 @@ class TestCaseMetadataReader(path:String) {
 
 }
 
-case class TestCaseMetaData(name:String, startTime:Long, endTime:Long = 0, status:Int = 0) {
-  def setEndTime(end : Long, status: Int): TestCaseMetaData = {
+case class TestCaseMetaData(name: String, startTime: Long, endTime: Long = 0, status: Int = 0) {
+  def setEndTime(end: Long, status: Int): TestCaseMetaData = {
     TestCaseMetaData(name, startTime, end, status)
   }
 }

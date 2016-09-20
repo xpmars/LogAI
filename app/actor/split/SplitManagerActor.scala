@@ -17,7 +17,7 @@ class SplitManagerActor(configuration: Configuration, repo : MongoRepo) extends 
 
   override def preStart(): Unit = {
     for(i <- 1 to noOfWorkers) {
-      context.actorOf(SplitActor.props(configuration.underlying.getString("split.logpath"),repo),s"split-worker-actor-$i")
+      context.actorOf(SplitActor.props(configuration,repo),s"split-worker-actor-$i")
     }
   }
 

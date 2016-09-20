@@ -9,7 +9,7 @@ import logai.parser.grok.GrokParser
 import model.{SplitJob, SplitJobStatus}
 import mongo.MongoRepo
 import play.api.Configuration
-import play.api.libs.json.Json
+import play.api.libs.json.{JsError, Json}
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import play.modules.reactivemongo.ReactiveMongoApi
@@ -25,7 +25,7 @@ class Application @Inject()(configuration: Configuration,
 
 
   val repo = new MongoRepo(reactiveMongoApi)
-  val splitManagerActor = system.actorOf(SplitManagerActor.props(configuration,repo), "split-manager-actor")
+  val splitManagerActor = system.actorOf(SplitManagerActor.props(configuration, repo), "split-manager-actor")
 
   def index = Action {
     Ok(views.html.index("Your new application is ready."))
@@ -39,7 +39,7 @@ class Application @Inject()(configuration: Configuration,
     request.body.validate[SplitJob] fold(
       errors => {
         Future {
-          BadRequest("Bad Request")
+          BadRequest(JsError.toJson(errors))
         }
       },
       s => {
@@ -50,6 +50,6 @@ class Application @Inject()(configuration: Configuration,
             Created(Json.toJson(split))
         }
       }
-      )
+    )
   }
 }

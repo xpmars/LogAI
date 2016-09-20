@@ -9,9 +9,6 @@ import play.api.Logger
 
 import scala.io.Source
 
-/**
-  * Created by gnagar on 26/08/16.
-  */
 class LogFileIterable(file: File, requiredKeys: Set[String] = Set("date", "loglevel", "message")) extends Iterable[Map[String, Any]] {
 
   override def iterator: Iterator[Map[String, Any]] = new Iterator[Map[String, Any]] {
@@ -36,9 +33,10 @@ class LogFileIterable(file: File, requiredKeys: Set[String] = Set("date", "logle
     private def parseNextElement(): Unit = {
       nextElement = None
       val stacktrace = new StringBuilder()
+
       def getStacktraceMap = if (stacktrace.isEmpty) Map() else Map(Stacktrace -> stacktrace.toString())
 
-      try{
+      try {
         while (fileIterator.hasNext && nextElement.isEmpty) {
           val line = fileIterator.next()
           lineCount += 1
@@ -61,18 +59,18 @@ class LogFileIterable(file: File, requiredKeys: Set[String] = Set("date", "logle
           }
         }
 
-        if(fileIterator.isEmpty) {
-          if(!currentLog.isEmpty) {
+        if (fileIterator.isEmpty) {
+          if (!currentLog.isEmpty) {
             nextElement = Some(currentLog ++ Map(Filename -> file.getName, "path" -> file.getAbsolutePath,
               Timestamp -> Utils.parseTime(currentLog.get("date").get.toString)) ++ getStacktraceMap)
             currentLog = Map.empty
-          } else if(currentParser.isEmpty && lineCount!=0){
+          } else if (currentParser.isEmpty && lineCount != 0) {
             onParserEmpty()
           }
         }
 
-      }catch {
-        case e:Exception =>
+      } catch {
+        case e: Exception =>
           Logger.warn(s"Failed to read file : ${file.getPath} : ${e.getMessage}")
       }
     }

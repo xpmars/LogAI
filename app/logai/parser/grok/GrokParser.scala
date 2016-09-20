@@ -10,7 +10,7 @@ import scala.io.Source
   */
 class GrokParser(name:String, pattern: String) extends Parser {
 
-  val grok = Grok.create("patterns/patterns")
+  val grok = Grok.create("conf/patterns/patterns")
   grok.compile(pattern, true)
 
   def parse(line : String) = {

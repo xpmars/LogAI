@@ -2,13 +2,12 @@ package logai
 
 import java.util.UUID
 
+import logai.LogKeys._
 import model.LogLine
 import mongo.LogsCategoryMongoRepo
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
-import LogKeys._
-
 import scala.concurrent.{Await, Future}
 
 class ErrorCategorization(errors: Seq[Map[String, Any]], logsCategoryRepo: LogsCategoryMongoRepo) {
@@ -18,10 +17,9 @@ class ErrorCategorization(errors: Seq[Map[String, Any]], logsCategoryRepo: LogsC
   def categorize(): Seq[Map[String, Any]] = {
     val errorsWithHash = errors.map {
       e =>
-        val hash = if (!e.getOrElse(Stacktrace, "").toString.isEmpty) {
-          e.getOrElse(Stacktrace, "").toString.hashCode
-        } else {
-          e.getOrElse(Message, "").toString.hashCode
+        val hash = e.get(Stacktrace) match {
+          case Some(st) if(!st.toString.isEmpty) => st.hashCode()
+          case _ => e.get(Message).get.hashCode()
         }
 
         e ++ Map(Hash -> hash)
@@ -38,7 +36,7 @@ class ErrorCategorization(errors: Seq[Map[String, Any]], logsCategoryRepo: LogsC
       g =>
 
         val categoryLogsFuture: Future[List[LogLine]] = logsCategoryRepo.getByOrigin(g._1.toString)
-        Await.result(categoryLogsFuture,Duration.Inf)
+        Await.result(categoryLogsFuture, Duration.Inf)
         val categoryLogs: Seq[Map[String, Any]] = categoryLogsFuture.value.get.get.map(_.getAsMap)
 
         val hashCategoryLogsMap = categoryLogs.map { l =>
@@ -64,7 +62,7 @@ class ErrorCategorization(errors: Seq[Map[String, Any]], logsCategoryRepo: LogsC
                 categoryMap.put(errorHash, categoryLogs(j).get(Category).get.toString)
               }
             }
-            if(!matched) logsWithoutCategory += e(i)
+            if (!matched) logsWithoutCategory += e(i)
 
           }
         }
@@ -91,10 +89,10 @@ class ErrorCategorization(errors: Seq[Map[String, Any]], logsCategoryRepo: LogsC
         }
 
         // Save new Categories
-        val newCategories = logsWithoutCategory.map(addCategory(_)).groupBy{
+        val newCategories = logsWithoutCategory.map(addCategory(_)).groupBy {
           l =>
             l.get(Category).get
-        }.map{
+        }.map {
           s => LogLine(s._2.head)
         }.toSeq
 
@@ -103,6 +101,7 @@ class ErrorCategorization(errors: Seq[Map[String, Any]], logsCategoryRepo: LogsC
     }
 
 
+    // Now each hash should have category
     val err = errorsWithHash.map {
       e =>
         val hash = e.get(Hash).get.asInstanceOf[Int]

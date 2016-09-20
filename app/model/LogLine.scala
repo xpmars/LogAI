@@ -7,8 +7,10 @@ import logai.LogKeys._
 case class LogLine(timestamp:Long, message:String, filename:String,stacktrace : Option[String],
                    hash:Int, origin:String,category:String,
                    testName:Option[String] = None,testStatus:Option[Int] = None) {
+
   def getAsMap = {
-    val stMap = if(stacktrace.isEmpty) Map() else Map(Stacktrace -> stacktrace.get)
+
+    val stMap = stacktrace.map(st => Map(Stacktrace -> st)).getOrElse(Map())
 
     Map(Timestamp -> timestamp, Message -> message, Filename -> filename,
       Hash -> hash, Origin -> origin, Category -> category) ++ stMap
@@ -28,16 +30,16 @@ object LogLine {
     val timestamp = log.get(Timestamp).get.asInstanceOf[Long]
     val message = log.get(Message).get.asInstanceOf[String]
     val filename = log.get(Filename).get.asInstanceOf[String]
-    val stacktrace =  if(log.contains(Stacktrace)) Some(log.get(Stacktrace).get.toString) else None
+    val stacktrace =  log.get(Stacktrace).map(_.toString)
 
     val hash = log.get(Hash).get.asInstanceOf[Int]
     val origin = log.get(Origin).get.asInstanceOf[String]
     val category = log.get(Category).get.asInstanceOf[String]
 
-    val testName =  if(log.contains(TestName)) Some(log.get(TestName).get.toString) else None
-    val testStatus =  if(log.contains(TestStatus)) Some(log.get(TestStatus).get.asInstanceOf[Int]) else None
+    val testName =  log.get(TestName).map(_.toString)
+    val testStatus = log.get(TestStatus).map(_.asInstanceOf[Int])
 
-    LogLine(timestamp,message,filename,stacktrace,hash,origin,category,testName,testStatus  )
+    LogLine(timestamp,message,filename,stacktrace,hash,origin,category,testName,testStatus)
   }
 }
 
