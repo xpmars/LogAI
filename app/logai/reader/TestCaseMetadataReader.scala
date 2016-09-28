@@ -6,6 +6,8 @@ import logai.LogAIUtils
 import logai.parser.grok.GrokParser
 import model.TestCaseStatus
 import org.joda.time.format.DateTimeFormat
+import play.api.Logger
+import play.api.libs.json.Json
 
 import scala.collection.mutable
 import scala.io.Source
@@ -14,9 +16,15 @@ class TestCaseMetadataReader(path: String) {
 
   private val TestCaseStatusFile =
     if (new File(LogAIUtils.sanitizePath(path) +"testcaselogs/test_case_status.log").exists())
-      "testcaselogs/test_case_status.log"
+      LogAIUtils.sanitizePath(path) + "testcaselogs/test_case_status.log"
     else
-      "artifacts/test_case_status.log"
+      LogAIUtils.sanitizePath(path) + "artifacts/test_case_status.log"
+
+  private val TestCaseStatusTxtFile =
+    if (new File(LogAIUtils.sanitizePath(path) +"testcaselogs/test_case_status.txt").exists())
+      LogAIUtils.sanitizePath(path) + "testcaselogs/test_case_status.txt"
+    else
+      LogAIUtils.sanitizePath(path) + "artifacts/test_case_status.txt"
 
 
   private val TestKey: String = "test"
@@ -32,12 +40,11 @@ class TestCaseMetadataReader(path: String) {
 
   private val dateTime = DateTimeFormat.forPattern("YYYY-MM-dd HH:mm:ss,SSS")
 
+  val tests = mutable.Map[String, TestCaseMetaData]()
+
   def parseMetaData() = {
-    val tests = mutable.Map[String, TestCaseMetaData]()
 
-    val filepath = LogAIUtils.sanitizePath(path) + TestCaseStatusFile
-
-    Source.fromFile(filepath).getLines().foreach {
+    Source.fromFile(TestCaseStatusFile).getLines().foreach {
       line =>
         val map: Map[String, AnyRef] = parser.parse(line)
         val map2: Map[String, AnyRef] = failedTestParser.parse(line)
@@ -57,13 +64,33 @@ class TestCaseMetadataReader(path: String) {
           tests += ((name, tests.get(name).get.setEndTime(et, TestCaseStatus.TestSuccessful)))
         }
     }
+
+    try {
+      addTestSuite()
+    } catch {
+      case e:Exception => Logger.warn("Adding test Suite failed.",e)
+    }
     tests.values.filter(t => t.endTime != 0 && t.startTime != 0 && t.status != 0).toSeq
+  }
+
+  def addTestSuite() ={
+    Source.fromFile(TestCaseStatusTxtFile).getLines().foreach{
+      line =>
+        val json = Json.parse(line.replace("'","\""))
+        val suite = (json \"suite").as[String]
+        val name = (json \"name").as[String]
+        tests += ((name, tests.get(name).get.setTestSuite(suite)))
+    }
   }
 
 }
 
-case class TestCaseMetaData(name: String, startTime: Long, endTime: Long = 0, status: Int = 0) {
+case class TestCaseMetaData(name: String, startTime: Long, endTime: Long = 0, status: Int = 0, testSuite:Option[String]=None) {
   def setEndTime(end: Long, status: Int): TestCaseMetaData = {
-    TestCaseMetaData(name, startTime, end, status)
+    TestCaseMetaData(name, startTime, end, status, testSuite)
+  }
+
+  def setTestSuite(suite:String) : TestCaseMetaData = {
+    TestCaseMetaData(name,startTime,endTime,status,Some(suite))
   }
 }

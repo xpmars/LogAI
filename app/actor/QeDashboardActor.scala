@@ -18,13 +18,13 @@ class QeDashboardActor(qeDashboardApi:QeDashboardApi) extends Actor {
 
   override def receive = {
     case GetCompletedSplit =>
-      qeDashboardApi.getCompletedSplits().map{
-        case result =>
-          Logger.info(result.toString)
-          Logger.info(result.body)
-      }.onFailure{
-        case e => Logger.error(e.getMessage)
-      }
+//      qeDashboardApi.getCompletedSplits().map{
+//        case result =>
+//          Logger.info(result.toString)
+//          Logger.info(result.body)
+//      }.onFailure{
+//        case e => Logger.error(e.getMessage)
+//      }
     case a@_ =>
       Logger.info("Unknown Message "+a)
   }

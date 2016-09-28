@@ -4,9 +4,9 @@ import play.api.libs.json.Json
 
 import logai.LogKeys._
 
-case class LogLine(timestamp:Long, message:String, filename:String,stacktrace : Option[String],
-                   hash:Int, origin:String,category:String,
-                   testName:Option[String] = None,testStatus:Option[Int] = None) {
+case class LogLine(timestamp: Long, splitId: String, message: String, filename: String, stacktrace: Option[String],
+                   hash: Int, origin: String, category: String,
+                   testName: Option[String] = None, testStatus: Option[Int] = None, testSuite:Option[String]=None) {
 
   def getAsMap = {
 
@@ -17,7 +17,7 @@ case class LogLine(timestamp:Long, message:String, filename:String,stacktrace : 
   }
 }
 
-case class TestDetails(test : String, splitId: String)
+case class TestDetails(test: String, splitId: String)
 
 object TestDetails {
   implicit val testDetails = Json.format[TestDetails]
@@ -26,20 +26,21 @@ object TestDetails {
 object LogLine {
   implicit val formatter = Json.format[LogLine]
 
-  def apply(log : Map[String,Any]) : LogLine = {
+  def apply(splitId: String, log: Map[String, Any]): LogLine = {
     val timestamp = log.get(Timestamp).get.asInstanceOf[Long]
     val message = log.get(Message).get.asInstanceOf[String]
     val filename = log.get(Filename).get.asInstanceOf[String]
-    val stacktrace =  log.get(Stacktrace).map(_.toString)
+    val stacktrace = log.get(Stacktrace).map(_.toString)
 
     val hash = log.get(Hash).get.asInstanceOf[Int]
     val origin = log.get(Origin).get.asInstanceOf[String]
     val category = log.get(Category).get.asInstanceOf[String]
 
-    val testName =  log.get(TestName).map(_.toString)
+    val testName = log.get(TestName).map(_.toString)
     val testStatus = log.get(TestStatus).map(_.asInstanceOf[Int])
+    val testSuite = log.get(TestSuite).map(_.asInstanceOf[String])
 
-    LogLine(timestamp,message,filename,stacktrace,hash,origin,category,testName,testStatus)
+    LogLine(timestamp, splitId, message, filename, stacktrace, hash, origin, category, testName, testStatus,testSuite)
   }
 }
 

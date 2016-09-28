@@ -12,5 +12,6 @@ object LogKeys {
   val Category = "cat"
   val Origin = "origin"
   val TestName = "test"
-  val TestStatus = "teststatus"
+  val TestStatus = "testStatus"
+  val TestSuite = "testSuite"
 }

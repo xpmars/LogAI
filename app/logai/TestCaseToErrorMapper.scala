@@ -10,7 +10,7 @@ class TestCaseToErrorMapper(splitId: String, logDir: String, testCasesMongoRepo:
 
   private val testCases = new TestCaseMetadataReader(logDir).parseMetaData()
 
-  testCasesMongoRepo.save(testCases.map(t => TestCaseStatus(splitId, t.name, t.status, t.startTime, t.endTime)))
+  testCasesMongoRepo.save(testCases.map(t => TestCaseStatus(splitId, t.name, t.status, t.startTime, t.endTime, t.testSuite)))
 
   @tailrec
   private def getTest(time: Long, tests: Seq[TestCaseMetaData] = testCases): Option[TestCaseMetaData] = tests match {
@@ -26,7 +26,8 @@ class TestCaseToErrorMapper(splitId: String, logDir: String, testCasesMongoRepo:
 
     getTest(time) match {
       case Some(test) =>
-        log ++ Map(LogKeys.TestName -> test.name, LogKeys.TestStatus -> test.status)
+        val testSuiteMap = test.testSuite.map(suite => Map(LogKeys.TestSuite -> suite)).getOrElse(Map())
+        log ++ Map(LogKeys.TestName -> test.name, LogKeys.TestStatus -> test.status) ++ testSuiteMap
       case None =>
         log
     }

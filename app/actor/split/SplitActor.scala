@@ -1,9 +1,10 @@
 package actor.split
 
 import akka.actor.{Actor, Props}
+import api.QeDashboardApi
 import logai.reader.LogDirIterable
 import logai.split.SCPLogCollector
-import logai.{ErrorCategorization, LogEnricher, TestCaseToErrorMapper}
+import logai.{AnalyzeTestCase, ErrorCategorization, LogEnricher, TestCaseToErrorMapper}
 import model.{LogLine, SplitJob, SplitJobStatus}
 import mongo.MongoRepo
 import play.api.{Configuration, Logger}
@@ -12,7 +13,7 @@ import reactivemongo.api.commands.UpdateWriteResult
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-class SplitActor(config: Configuration, repo: MongoRepo) extends Actor {
+class SplitActor(config: Configuration, repo: MongoRepo, dashboardApi: QeDashboardApi) extends Actor {
 
   override def preStart() = {
     context.parent ! WorkAvalibale
@@ -34,7 +35,7 @@ class SplitActor(config: Configuration, repo: MongoRepo) extends Actor {
       val parent = context.parent
 
       updateSplitJobStatus(split._id, SplitJobStatus.LOGS_COLLECTION).flatMap { result =>
-        //collect logs is skipped as it is taking long time
+
         val localDir = config.underlying.getString("split.logpath")
         val remoteDir = config.underlying.getString("logserver.logpath") + split.dir
         val host = config.underlying.getString("logserver.host")
@@ -45,22 +46,24 @@ class SplitActor(config: Configuration, repo: MongoRepo) extends Actor {
         val errors = new LogDirIterable(dir)
           .filter(_.getOrElse("loglevel", "").equals("ERROR"))
           .map(new LogEnricher().process(_)).toSeq
-        val categorizedErrors: Seq[Map[String, Any]] = new ErrorCategorization(errors, repo.logsCategoryRepo).categorize()
+        val categorizedErrors: Seq[Map[String, Any]] = new ErrorCategorization(split._id, errors, repo.logsCategoryRepo).categorize()
         updateSplitJobStatus(split._id, SplitJobStatus.TEST_CASE_MAPPING).map(result => categorizedErrors)
       }.flatMap {
         e =>
-          val errors = e.map(new TestCaseToErrorMapper(split._id, dir, repo.testcaseRepo).mapTests(_))
-          repo.logsRepo.save(errors.map(LogLine(_)))
-        //              .map(result => updateSplitJobStatus(split._id, SplitJobStatus.TEST_CASE_ANALYZING))
-        //      }.map {
-        //          repo.testcaseRepo.save()
-        //          repo.testcaseRepo.getFailedTests(split._id).map { tests =>
-        //          }
-        //        Map()
+          val errorMapper = new TestCaseToErrorMapper(split._id, dir, repo.testcaseRepo)
+          val errors = e.map(errorMapper.mapTests(_))
+          repo.logsRepo.save(errors.map(LogLine(split._id, _))).flatMap {
+            r =>
+              updateSplitJobStatus(split._id, SplitJobStatus.TEST_CASE_ANALYZING)
+          }.flatMap {
+            result =>
+              new AnalyzeTestCase(split._id, repo, errors).analyze()
+          }
       }.onComplete {
         case Success(result) =>
           updateSplitJobStatus(split._id, SplitJobStatus.FINISHED)
           parent ! WorkAvalibale
+          dashboardApi.saveSplitInfo(split._id)
           Logger.info(s"Split Job with id : ${split._id} completed Successfully.")
         case Failure(t) =>
           updateSplitJobStatus(split._id, SplitJobStatus.FAILED)
@@ -73,5 +76,5 @@ class SplitActor(config: Configuration, repo: MongoRepo) extends Actor {
 }
 
 object SplitActor {
-  def props(config: Configuration, repo: MongoRepo) = Props(classOf[SplitActor], config, repo)
+  def props(config: Configuration, repo: MongoRepo, dashboardApi: QeDashboardApi) = Props(classOf[SplitActor], config, repo, dashboardApi)
 }

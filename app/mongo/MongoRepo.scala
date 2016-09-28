@@ -9,4 +9,5 @@ class MongoRepo(val reactiveMongoApi: ReactiveMongoApi)(implicit ec: ExecutionCo
   val splitJobRepo = new SplitMongoRepo(reactiveMongoApi)
   val logsCategoryRepo = new LogsCategoryMongoRepo(reactiveMongoApi)
   val testcaseRepo = new TestCaseMongoRepo(reactiveMongoApi)
+  val spiltInfoRepo = new SplitInfoMongoRepo(reactiveMongoApi)
 }

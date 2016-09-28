@@ -1,13 +1,14 @@
 package actor.split
 
 import akka.actor.{Actor, ActorRef, Props}
+import api.QeDashboardApi
 import model.SplitJob
 import mongo.MongoRepo
 import play.api.{Configuration, Logger}
 
 import scala.collection.mutable
 
-class SplitManagerActor(configuration: Configuration, repo : MongoRepo) extends Actor {
+class SplitManagerActor(configuration: Configuration, repo : MongoRepo,qeDashboardApi: QeDashboardApi) extends Actor {
 
   val noOfWorkers = 5
 
@@ -17,7 +18,7 @@ class SplitManagerActor(configuration: Configuration, repo : MongoRepo) extends 
 
   override def preStart(): Unit = {
     for(i <- 1 to noOfWorkers) {
-      context.actorOf(SplitActor.props(configuration,repo),s"split-worker-actor-$i")
+      context.actorOf(SplitActor.props(configuration,repo,qeDashboardApi),s"split-worker-actor-$i")
     }
   }
 
@@ -42,5 +43,6 @@ class SplitManagerActor(configuration: Configuration, repo : MongoRepo) extends 
 }
 
 object SplitManagerActor {
-  def props(configuration: Configuration, repo : MongoRepo) = Props(classOf[SplitManagerActor],configuration, repo)
+  def props(configuration: Configuration, repo : MongoRepo, qeDashboardApi: QeDashboardApi) =
+    Props(classOf[SplitManagerActor],configuration, repo,qeDashboardApi)
 }

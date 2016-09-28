@@ -13,6 +13,10 @@ class LogDirIterable(logDir: String) extends Iterable[Map[String, Any]] {
 
     override def hasNext: Boolean = !nextElement.isEmpty
 
+    private def checkFileToProcess(name:String) : Boolean = {
+      name.contains(".log") || name.contains(".out")
+    }
+
     private def getNextElement(): Unit = {
       nextElement = None
       if (currentIterator.isEmpty && filesIterator.hasNext) {
@@ -20,7 +24,9 @@ class LogDirIterable(logDir: String) extends Iterable[Map[String, Any]] {
         if (file.isDirectory) {
           currentIterator = new LogDirIterable(file.getAbsolutePath).iterator
         } else {
-          currentIterator = new LogFileIterable(file).iterator
+          if(checkFileToProcess(file.getName)){
+            currentIterator = new LogFileIterable(file).iterator
+          }
         }
         getNextElement()
       } else if (!currentIterator.isEmpty) {

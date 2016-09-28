@@ -19,13 +19,13 @@ import scala.concurrent.{ExecutionContext, Future}
 class Application @Inject()(configuration: Configuration,
                             system: ActorSystem,
                             reactiveMongoApi: ReactiveMongoApi,
-                            qeDashboardApi: QeDashboardApi,
                             ws: WSClient)
                            (implicit ec: ExecutionContext) extends Controller {
 
 
   val repo = new MongoRepo(reactiveMongoApi)
-  val splitManagerActor = system.actorOf(SplitManagerActor.props(configuration, repo), "split-manager-actor")
+  val qeDashboardApi = new QeDashboardApi(configuration, ws, repo)
+  val splitManagerActor = system.actorOf(SplitManagerActor.props(configuration, repo, qeDashboardApi), "split-manager-actor")
 
   def index = Action {
     Ok(views.html.index("Your new application is ready."))

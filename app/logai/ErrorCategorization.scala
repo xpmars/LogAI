@@ -10,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
-class ErrorCategorization(errors: Seq[Map[String, Any]], logsCategoryRepo: LogsCategoryMongoRepo) {
+class ErrorCategorization(splitId: String, errors: Seq[Map[String, Any]], logsCategoryRepo: LogsCategoryMongoRepo) {
 
   private val categoryMap = collection.mutable.Map[Int, String]()
 
@@ -18,7 +18,7 @@ class ErrorCategorization(errors: Seq[Map[String, Any]], logsCategoryRepo: LogsC
     val errorsWithHash = errors.map {
       e =>
         val hash = e.get(Stacktrace) match {
-          case Some(st) if(!st.toString.isEmpty) => st.hashCode()
+          case Some(st) if (!st.toString.isEmpty) => st.hashCode()
           case _ => e.get(Message).get.hashCode()
         }
 
@@ -93,7 +93,7 @@ class ErrorCategorization(errors: Seq[Map[String, Any]], logsCategoryRepo: LogsC
           l =>
             l.get(Category).get
         }.map {
-          s => LogLine(s._2.head)
+          s => LogLine(splitId, s._2.head)
         }.toSeq
 
         logsCategoryRepo.save(newCategories)

@@ -1,6 +1,6 @@
 package mongo
 
-import model.{LogLine, TestCaseStatus}
+import model.{CategoryCount, ErrorTestCount, LogLine, TestCaseStatus}
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.commands.MultiBulkWriteResult
 import reactivemongo.bson.BSONDocument
@@ -13,6 +13,8 @@ class LogsMongoRepo(reactiveMongoApi: ReactiveMongoApi){
   import scala.concurrent.ExecutionContext.Implicits.global
 
   private val LogsCollection = "logs"
+  private val TestCaseErrorLogCountCollection = "tc_error_count"
+  private val ErrorCategoryCountCollection = "error_category_count"
 
   private def collection = reactiveMongoApi.database.map(_.collection[JSONCollection](LogsCollection))
 
@@ -27,5 +29,21 @@ class LogsMongoRepo(reactiveMongoApi: ReactiveMongoApi){
 //      "_id" -> splitId, "testStatus" -> TestCaseStatus.TestSuccessful
 //    )).cursor[LogLine]().collect[List]())
 //  }
+
+  def saveTestCaseErrorCount(errors : Seq[ErrorTestCount]) = {
+    reactiveMongoApi.database.map(_.collection[JSONCollection](TestCaseErrorLogCountCollection)).flatMap {
+      logcollection =>
+        val documents = errors.map(implicitly[logcollection.ImplicitlyDocumentProducer](_))
+        logcollection.bulkInsert(ordered = true)(documents: _*)
+    }
+  }
+
+  def saveErrorCategoryCount(errors:Seq[CategoryCount]) = {
+    reactiveMongoApi.database.map(_.collection[JSONCollection](ErrorCategoryCountCollection)).flatMap {
+      logcollection =>
+        val documents = errors.map(implicitly[logcollection.ImplicitlyDocumentProducer](_))
+        logcollection.bulkInsert(ordered = true)(documents: _*)
+    }
+  }
 
 }
