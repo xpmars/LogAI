@@ -1,0 +1,6 @@
+dd MMM YYYY HH:mm:ss,SSS
+YYYY-MM-dd HH:mm:ss,SSS
+YYYY-MM-dd'T'HH:mm:ss,SSS
+YYYY-MM-dd HH:mm:ss.SSS
+dd MMM YYYY HH:mm:ss.SSS
+YYYY-MM-dd'T'HH:mm:ss.SSS

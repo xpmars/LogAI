@@ -10,7 +10,7 @@ import scala.collection.mutable
 
 class SplitManagerActor(configuration: Configuration, repo : MongoRepo,qeDashboardApi: QeDashboardApi) extends Actor {
 
-  val noOfWorkers = 5
+  val noOfWorkers = configuration.underlying.getInt("parallel.splits")
 
   private val availableSplitActors = mutable.Queue[ActorRef]()
   private val splitsToProcess = mutable.Queue[SplitJob]()

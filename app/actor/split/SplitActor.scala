@@ -1,5 +1,7 @@
 package actor.split
 
+import java.io.File
+
 import akka.actor.{Actor, Props}
 import api.QeDashboardApi
 import logai.reader.LogDirIterable
@@ -7,11 +9,12 @@ import logai.split.SCPLogCollector
 import logai.{AnalyzeTestCase, ErrorCategorization, LogEnricher, TestCaseToErrorMapper}
 import model.{LogLine, SplitJob, SplitJobStatus}
 import mongo.MongoRepo
+import org.apache.commons.io.FileUtils
 import play.api.{Configuration, Logger}
 import reactivemongo.api.commands.UpdateWriteResult
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 class SplitActor(config: Configuration, repo: MongoRepo, dashboardApi: QeDashboardApi) extends Actor {
 
@@ -33,10 +36,10 @@ class SplitActor(config: Configuration, repo: MongoRepo, dashboardApi: QeDashboa
 
       val dir = config.underlying.getString("split.logpath") + split.dir
       val parent = context.parent
+      val localDir = config.underlying.getString("split.logpath")
 
       updateSplitJobStatus(split._id, SplitJobStatus.LOGS_COLLECTION).flatMap { result =>
 
-        val localDir = config.underlying.getString("split.logpath")
         val remoteDir = config.underlying.getString("logserver.logpath") + split.dir
         val host = config.underlying.getString("logserver.host")
         val key = config.underlying.getString("logserver.key")
@@ -65,9 +68,12 @@ class SplitActor(config: Configuration, repo: MongoRepo, dashboardApi: QeDashboa
           parent ! WorkAvalibale
           dashboardApi.saveSplitInfo(split._id)
           Logger.info(s"Split Job with id : ${split._id} completed Successfully.")
+
+          Try(FileUtils.deleteDirectory(new File(localDir + split.dir)))
         case Failure(t) =>
           updateSplitJobStatus(split._id, SplitJobStatus.FAILED)
           parent ! WorkAvalibale
+          dashboardApi.saveSplitInfo(split._id)
           Logger.error(s"Split Job with id : ${split._id} failed. ${t.getMessage}", t)
       }
 

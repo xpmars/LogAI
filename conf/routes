@@ -7,6 +7,8 @@ GET     /                           controllers.Application.index
 GET     /testApp                    controllers.Application.testApp
 #GET     /parseError                 controllers.Application.parseError
 POST    /splits                     controllers.Application.processSplit
+POST /checkPattern                  controllers.Application.checkPattern
+POST /testParsers                  controllers.Application.testParsers
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

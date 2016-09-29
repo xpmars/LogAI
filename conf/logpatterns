@@ -5,3 +5,5 @@ ambarialertslog %{TIMESTAMP_ISO8601:date} \[%{LOGLEVEL:loglevel}\] %{GREEDYDATA:
 ambariagentlog %{LOGLEVEL:loglevel} %{TIMESTAMP_ISO8601:date} %{GREEDYDATA:message}
 uifrmlog %{TIMESTAMP_ISO8601:date} *%{LOGLEVEL:loglevel} %{GREEDYDATA:message}
 outputlog %{TIMESTAMP_ISO8601:date}[\|].*[\|]%{LOGLEVEL:loglevel}[\|].*[\|].*[\|]%{GREEDYDATA:message}
+stormlog %{TIMESTAMP_ISO8601:date}.*\[%{LOGLEVEL:loglevel}\] %{GREEDYDATA:message}
+general %{TIMESTAMP_ISO8601:date} %{LOGLEVEL:loglevel} %{GREEDYDATA:message}

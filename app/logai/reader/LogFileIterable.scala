@@ -88,7 +88,7 @@ class LogFileIterable(file: File, requiredKeys: Set[String] = Set("date", "logle
       * Called When no suitable parser found for the File
       */
     private def onParserEmpty() = {
-      Logger.warn(s"No logs parsed for ${file.getName}")
+      Logger.warn(s"No logs parsed for ${file.getPath}")
     }
 
     private def parseMessage(line: String): Map[String, AnyRef] = {
