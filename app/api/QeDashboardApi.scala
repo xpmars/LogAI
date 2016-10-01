@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 import model.SplitInfo
 import mongo.MongoRepo
+import org.joda.time.DateTime
 import play.api.libs.json.{JsLookupResult, JsObject, Json}
 import play.api.{Configuration, Logger}
 import play.api.libs.ws.{WSClient, WSResponse}
@@ -38,7 +39,7 @@ class QeDashboardApi(configuration: Configuration, ws: WSClient, repo:MongoRepo)
             val runId = (json\"run_info_id").as[String]
             val componentId = (json\"component_id").as[String]
             val splitNo = (splitJson \ "split_number").as[String]
-            val info = SplitInfo(splitId, splitNo, resultId,componentId,releaseId,runId)
+            val info = SplitInfo(splitId, splitNo, resultId,componentId,releaseId,runId,DateTime.now.getMillis)
             Logger.info(info.toString)
             repo.spiltInfoRepo.save(info)
           }

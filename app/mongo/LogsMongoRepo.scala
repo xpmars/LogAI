@@ -16,7 +16,11 @@ class LogsMongoRepo(reactiveMongoApi: ReactiveMongoApi){
   private val TestCaseErrorLogCountCollection = "tc_error_count"
   private val ErrorCategoryCountCollection = "error_category_count"
 
+  import reactivemongo.play.json._
+
   private def collection = reactiveMongoApi.database.map(_.collection[JSONCollection](LogsCollection))
+  private def tcErrorCountCollection = reactiveMongoApi.database.map(_.collection[JSONCollection](TestCaseErrorLogCountCollection))
+
 
   def save(logs:Seq[LogLine]) : Future[MultiBulkWriteResult] = collection.flatMap{
     logcollection =>
@@ -24,14 +28,26 @@ class LogsMongoRepo(reactiveMongoApi: ReactiveMongoApi){
       logcollection.bulkInsert(ordered = true)(documents: _*)
   }
 
-//  def getAllFailedTestLogs(splitId: String) = {
-//    collection.flatMap(_.find(BSONDocument(
-//      "_id" -> splitId, "testStatus" -> TestCaseStatus.TestSuccessful
-//    )).cursor[LogLine]().collect[List]())
-//  }
+  def getTestLogs(splitId: String, testName:String) = {
+    collection.flatMap(_.find(BSONDocument(
+      "splitId" -> splitId, "testName" -> testName
+    )).cursor[LogLine]().collect[List]())
+  }
+
+  def getUniqueTestLogs(splitId: String, testName:String) = {
+    tcErrorCountCollection.flatMap(_.find(BSONDocument(
+      "splitId" -> splitId, "testName" -> testName
+    )).cursor[ErrorTestCount]().collect[List]())
+  }
+
+  def getUniqueTestLogs(splitId: String) = {
+    tcErrorCountCollection.flatMap(_.find(BSONDocument(
+      "splitId" -> splitId
+    )).cursor[ErrorTestCount]().collect[List]())
+  }
 
   def saveTestCaseErrorCount(errors : Seq[ErrorTestCount]) = {
-    reactiveMongoApi.database.map(_.collection[JSONCollection](TestCaseErrorLogCountCollection)).flatMap {
+    tcErrorCountCollection.flatMap {
       logcollection =>
         val documents = errors.map(implicitly[logcollection.ImplicitlyDocumentProducer](_))
         logcollection.bulkInsert(ordered = true)(documents: _*)

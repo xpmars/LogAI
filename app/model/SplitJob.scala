@@ -5,8 +5,8 @@ import org.joda.time.DateTime
 import play.api.libs.json.{Json, Reads}
 
 
-case class SplitJob(_id: String, dir: String, status: Option[SplitJobStatus], lastStatusUpdated: Option[Long], history: Option[Seq[SplitJobHistory]]) {
-  def withStatus(newStatus: SplitJobStatus) = {
+case class SplitJob(_id: String, dir: String, status: Option[SplitJobStatus], lastStatusUpdated: Option[Long], history: Option[Seq[SplitJobHistory]],comments:Option[String]) {
+  def withStatus(newStatus: SplitJobStatus,comments:Option[String]) = {
 
     val updatedHistory =
       for {
@@ -15,7 +15,7 @@ case class SplitJob(_id: String, dir: String, status: Option[SplitJobStatus], la
         _history <- history
       } yield Seq(SplitJobHistory(_status, _lastUpdated, DateTime.now().getMillis)) ++ _history
 
-    SplitJob(_id, dir, Some(newStatus), Some(DateTime.now().getMillis), Some(updatedHistory.getOrElse(Nil)))
+    SplitJob(_id, dir, Some(newStatus), Some(DateTime.now().getMillis), Some(updatedHistory.getOrElse(Nil)),comments)
   }
 }
 

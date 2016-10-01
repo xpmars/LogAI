@@ -10,6 +10,15 @@ POST    /splits                     controllers.Application.processSplit
 POST /checkPattern                  controllers.Application.checkPattern
 POST /testParsers                  controllers.Application.testParsers
 
+
+GET /components                    controllers.Application.getComponentsForRun
+GET /failedTestCases               controllers.Application.getFailedTestCasesForRunAndComponent
+GET /testLogs                      controllers.Application.getLogsForTest
+GET /splitTestLogs                 controllers.Application.getErrorLogsForSplit
+GET /splits                        controllers.Application.getSplits
+GET /splitInfo                     controllers.Application.getSplitInfo
+
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 

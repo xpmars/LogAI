@@ -25,9 +25,9 @@ class SplitActor(config: Configuration, repo: MongoRepo, dashboardApi: QeDashboa
   //TODO use proper pools
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  private def updateSplitJobStatus(id: String, splitJobStatus: SplitJobStatus.SplitJobStatus): Future[UpdateWriteResult] = {
+  private def updateSplitJobStatus(id: String, splitJobStatus: SplitJobStatus.SplitJobStatus,comments:Option[String]=None): Future[UpdateWriteResult] = {
     repo.splitJobRepo.find(id).flatMap { newSplit =>
-      repo.splitJobRepo.update(newSplit.withStatus(splitJobStatus))
+      repo.splitJobRepo.update(newSplit.withStatus(splitJobStatus,comments))
     }
   }
 
@@ -71,10 +71,11 @@ class SplitActor(config: Configuration, repo: MongoRepo, dashboardApi: QeDashboa
 
           Try(FileUtils.deleteDirectory(new File(localDir + split.dir)))
         case Failure(t) =>
-          updateSplitJobStatus(split._id, SplitJobStatus.FAILED)
+          updateSplitJobStatus(split._id, SplitJobStatus.FAILED,Some(t.getMessage))
           parent ! WorkAvalibale
           dashboardApi.saveSplitInfo(split._id)
           Logger.error(s"Split Job with id : ${split._id} failed. ${t.getMessage}", t)
+          Try(FileUtils.deleteDirectory(new File(localDir + split.dir)))
       }
 
     case a@_ => Logger.info("Unknown Message " + a)

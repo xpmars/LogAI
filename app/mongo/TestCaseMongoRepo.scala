@@ -14,6 +14,8 @@ class TestCaseMongoRepo(reactiveMongoApi: ReactiveMongoApi){
 
   private val TestCasesCollection = "testcases"
 
+  import reactivemongo.play.json._
+
   private def collection = reactiveMongoApi.database.map(_.collection[JSONCollection](TestCasesCollection))
 
   def save(testcases:Seq[TestCaseStatus]) : Future[MultiBulkWriteResult] = collection.flatMap{
@@ -22,10 +24,11 @@ class TestCaseMongoRepo(reactiveMongoApi: ReactiveMongoApi){
       logcollection.bulkInsert(ordered = true)(documents: _*)
   }
 
-//  def getFailedTests(splitId:String) = {
-//    collection.flatMap(_.find(BSONDocument(
-//      "splitId" -> splitId, "status" -> TestCaseStatus.TestFailed
-//    )).cursor[TestCaseStatus]().collect[List]())
-//  }
+  def getFailedTests(splitIds:Seq[String]) = {
+    collection.flatMap(_.find(BSONDocument(
+      "splitId"  -> BSONDocument("$in" -> splitIds)
+      , "status" -> TestCaseStatus.TestFailed
+    )).cursor[TestCaseStatus]().collect[List]())
+  }
 
 }

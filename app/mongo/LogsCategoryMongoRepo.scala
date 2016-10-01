@@ -1,6 +1,6 @@
 package mongo
 
-import model.LogLine
+import model.{LogLine, TestCaseStatus}
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.commands.MultiBulkWriteResult
 import reactivemongo.bson.BSONDocument
@@ -28,6 +28,12 @@ class LogsCategoryMongoRepo(reactiveMongoApi: ReactiveMongoApi) {
   def getByOrigin(origin:String)  = {
     collection.flatMap(_.find(BSONDocument(
       "origin" -> origin
+    )).cursor[LogLine]().collect[List]())
+  }
+
+  def getByCategories(categories:Seq[String]) = {
+    collection.flatMap(_.find(BSONDocument(
+      "category"  -> BSONDocument("$in" -> categories)
     )).cursor[LogLine]().collect[List]())
   }
 }

@@ -2,7 +2,7 @@ package mongo
 
 
 import model.SplitJob
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.commands.WriteResult
 import reactivemongo.bson.BSONDocument
@@ -24,6 +24,15 @@ class SplitMongoRepo(val reactiveMongoApi: ReactiveMongoApi) {
     collection.flatMap(_.find(BSONDocument(
       "_id" -> splitId
     )).requireOne[SplitJob])
+  }
+
+
+  def find(limit: Int) = {
+    val sort = Json.obj("lastStatusUpdatedq" -> -1)
+    collection.flatMap{
+      col =>
+      col.find(BSONDocument()).sort(sort).cursor[SplitJob]().collect[Seq](limit)
+    }
   }
 
   def save(split: SplitJob): Future[WriteResult] = collection.flatMap(_.insert(split))
